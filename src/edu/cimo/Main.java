@@ -9,7 +9,7 @@ public class Main {
     private static final int[] dim = {4,5}; // dimension of grid
     private static final char[] alphabet = {'H','D','L','P'};
     private static final int SIZE = 20; // size of grid (aka math searched space)
-    private static final int LIMIT = 50000; // max iterations
+    private static final int LIMIT = 500; // max iterations
     private static int D = 1; // searched distance
 
     /*
@@ -30,7 +30,7 @@ public class Main {
         System.out.println("[INFO] 1st fitness: " + currFitness + "\n-------------------\n");
 
         // do some magic
-        for (int i = 0; i < LIMIT; i+= 100) {
+        for (int i = LIMIT; i < LIMIT; i+= LIMIT/100) {
             String winner = hillClimb(i, SIZE, subject, true);
             System.out.println("[FINAL + " + i + "] fitness: " + grid.getFitness(winner, true));
         }
