@@ -9,7 +9,7 @@ public class Grid {
         this.Y = dim[1];
     }
 
-    protected int getFitness(String subject) {
+    protected int getFitness(String subject, boolean printGrid) {
         int fitness = 0;
         int[] currPos = {0,0};
         int[][] grid = new int[this.X][this.Y];
@@ -18,8 +18,11 @@ public class Grid {
             fitness += makeMove(currPos, grid, subject.charAt(i));
         }
 
-        System.out.println("[INFO] final pos: [" + currPos[0] + "," + currPos[1] + "]");
-        printGridHumanFormat(grid);
+        if (printGrid) {
+            System.out.println("[INFO] pos: [" + currPos[0] + "," + currPos[1] + "]");
+            printGridHumanFormat(grid);
+        }
+
         return fitness;
     }
 
@@ -74,7 +77,7 @@ public class Grid {
     /*
      * brief: print grid in human readable format to console
      */
-    private void printGridHumanFormat(int[][] grid) {
+    protected void printGridHumanFormat(int[][] grid) {
         System.out.println("[INFO] grid:");
         for (int i = Y-1; i >= 0; i--) {
             for (int j = 0; j < X; j++) {
