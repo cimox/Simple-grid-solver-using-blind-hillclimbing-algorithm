@@ -1,11 +1,12 @@
 package edu.cimo;
 
 import java.io.*;
+import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.Random;
 
 public class Main {
-    private static final int[] dim = {3,4}; // dimension of grid
+    private static final int[] dim = {5,10}; // dimension of grid
     private static final char[] alphabet = {'H','D','L','P'};
     private static final int SIZE = dim[0]*dim[1]; // size of grid (aka math searched space)
     private static final int LIMIT = 50000; // max iterations
@@ -43,6 +44,7 @@ public class Main {
             } catch (IOException e) {
                 e.printStackTrace();
             }
+
             if (grid.getFitness(winner, false) == SIZE) {
                 System.err.println("[FINAL + " + i + "] fitness: " + grid.getFitness(winner, true));
                 System.out.println(winner);
@@ -61,26 +63,10 @@ public class Main {
     private static String hillClimb(int max, int size, String subject, boolean debugPrinting) throws IOException {
 //        System.out.println("[INFO] running hillclimbing");
         LinkedList<String> candidates;
+        LinkedList<String> output = new LinkedList<>();
         Grid grid = new Grid(dim);
-        File file = null;
+        File file;
         BufferedWriter bw = null;
-
-        if (debugPrinting) {
-            try {
-                file = new File("max-"+max+"_size-"+size+"_D-"+ DISTANCE +".out");
-
-                // if file doesnt exists, then create it
-                if (!file.exists()) {
-                    file.createNewFile();
-                }
-
-                FileWriter fw = new FileWriter(file.getAbsoluteFile());
-                bw = new BufferedWriter(fw);
-                bw.write("\"iter\";\"fitness\";\"distance\"");
-            } catch (IOException e) {
-                e.printStackTrace();
-            }
-        }
 
         int currFitness = grid.getFitness(subject, false);
         int candFitness = 0;
@@ -89,8 +75,23 @@ public class Main {
         for (int i = 0; i < max; i++) {
             if (currFitness >= SIZE || i >= max
                     || (ENABLE_STAGNATE && stagnate >= LIMIT_STAGNATE)) { // stop condition: stop or solution was found
-                if (debugPrinting) {
-                    bw.append("\"" + i + "\";\"" + currFitness + "\";\"" + DISTANCE + "\"\n");
+
+                if (debugPrinting) { // open file only if solution was found
+                    try {
+                        file = new File("max-"+max+"_size-"+size+"_D-"+ DISTANCE +".out");
+
+                        // if file doesnt exists, then create it
+                        if (!file.exists()) {
+                            file.createNewFile();
+                        }
+
+                        FileWriter fw = new FileWriter(file.getAbsoluteFile());
+                        bw = new BufferedWriter(fw);
+                        bw.write("\"iter\";\"fitness\";\"distance\"\n");
+                    } catch (IOException e) {
+                        e.printStackTrace();
+                    }
+                    printToFile(bw, output);
                 }
                 if (bw != null) bw.close();
                 return subject;
@@ -112,13 +113,18 @@ public class Main {
             if (stagnate >= LIMIT_STAGNATE/2 && ENABLE_DISTANCE) DISTANCE = (DISTANCE < SIZE/4) ? DISTANCE+1 : DISTANCE;
 
             if (debugPrinting) {
-
-                bw.append("\"" + i + "\";\"" + currFitness + "\";\"" + DISTANCE + "\"\n");
+                output.add("\"" + i + "\";\"" + currFitness + "\";\"" + DISTANCE + "\"\n");
             }
         }
 
         if (bw != null) bw.close();
         return subject;
+    }
+
+    private static void printToFile(BufferedWriter bw, LinkedList<String> output) throws IOException {
+        for (String e : output) {
+            bw.append(e + "\n");
+        }
     }
 
     private static LinkedList<String> getRandCandidate(String subject) {
