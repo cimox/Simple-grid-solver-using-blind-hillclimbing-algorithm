@@ -6,10 +6,10 @@ import java.io.UnsupportedEncodingException;
 import java.util.Random;
 
 public class Main {
-    private static final int[] dim = {10,10}; // dimension of grid
+    private static final int[] dim = {4,5}; // dimension of grid
     private static final char[] alphabet = {'H','D','L','P'};
     private static final int SIZE = dim[0]*dim[1]; // size of grid (aka math searched space)
-    private static final int LIMIT = 500000; // max iterations
+    private static final int LIMIT = 50000; // max iterations
     private static final int INCREMENT = 1000;
     private static int DISTANCE = 1; // searched distance
     private static int LIMIT_STAGNATE = LIMIT/50;
@@ -34,11 +34,12 @@ public class Main {
         // do some magic
         for (int i = INCREMENT; i <= LIMIT; i+= INCREMENT) {
             DISTANCE=1;
-            String winner = hillClimb(i, SIZE, subject, false);
+            String winner = hillClimb(i, SIZE, subject, true);
             if (grid.getFitness(winner, false) == SIZE) {
-                System.out.println("[FINAL + " + i + "] fitness: " + grid.getFitness(winner, true));
+                System.err.println("[FINAL + " + i + "] fitness: " + grid.getFitness(winner, true));
                 System.out.println(winner);
                 System.out.println("--------------");
+                break;
             }
         }
     }
@@ -65,7 +66,7 @@ public class Main {
         int stagnate = 0;
 
         for (int i = 0; i < max; i++) {
-            if (currFitness >= SIZE || i >= max) { // stop condition: stop or solution was found
+            if (currFitness >= SIZE || i >= max || stagnate >= LIMIT_STAGNATE) { // stop condition: stop or solution was found
                 if (debugPrinting) {
                     writer.println("\"" + i + "\";\"" + currFitness + "\";\"" + DISTANCE + "\"");
                 }
@@ -80,14 +81,8 @@ public class Main {
                 currFitness = candFitness;
                 stagnate = 0;
             }
-            else { // if stagnating = accept even worse candidate to eliminate local extrem
+            else { // stagnation - local extrem
                 stagnate++;
-                if (stagnate >= LIMIT_STAGNATE) {
-                    subject = candidate;
-                    currFitness = candFitness;
-//                    DISTANCE++;
-//                    System.err.println("[WARN] STAGNATION: " + stagnate + ", distance: " + DISTANCE + ", fitness: " + currFitness);
-                }
             }
             if (debugPrinting) {
                 writer.println("\"" + i + "\";\"" + currFitness + "\";\"" + DISTANCE + "\"");
