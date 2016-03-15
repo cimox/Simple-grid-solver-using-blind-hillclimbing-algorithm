@@ -6,11 +6,13 @@ import java.io.UnsupportedEncodingException;
 import java.util.Random;
 
 public class Main {
-    private static final int[] dim = {4,5}; // dimension of grid
+    private static final int[] dim = {10,10}; // dimension of grid
     private static final char[] alphabet = {'H','D','L','P'};
-    private static final int SIZE = 20; // size of grid (aka math searched space)
-    private static final int LIMIT = 500; // max iterations
-    private static int D = 1; // searched distance
+    private static final int SIZE = dim[0]*dim[1]; // size of grid (aka math searched space)
+    private static final int LIMIT = 500000; // max iterations
+    private static final int INCREMENT = 1000;
+    private static int DISTANCE = 1; // searched distance
+    private static int LIMIT_STAGNATE = LIMIT/50;
 
     /*
     Takze algoritmus vyzera nasledovne:
@@ -30,22 +32,27 @@ public class Main {
         System.out.println("[INFO] 1st fitness: " + currFitness + "\n-------------------\n");
 
         // do some magic
-        for (int i = LIMIT; i < LIMIT; i+= LIMIT/100) {
-            String winner = hillClimb(i, SIZE, subject, true);
-            System.out.println("[FINAL + " + i + "] fitness: " + grid.getFitness(winner, true));
+        for (int i = INCREMENT; i <= LIMIT; i+= INCREMENT) {
+            DISTANCE=1;
+            String winner = hillClimb(i, SIZE, subject, false);
+            if (grid.getFitness(winner, false) == SIZE) {
+                System.out.println("[FINAL + " + i + "] fitness: " + grid.getFitness(winner, true));
+                System.out.println(winner);
+                System.out.println("--------------");
+            }
         }
     }
 
 
     private static String hillClimb(int max, int size, String subject, boolean debugPrinting) {
-        System.out.println("[INFO] running hillclimbing");
+//        System.out.println("[INFO] running hillclimbing");
         String candidate;
         Grid grid = new Grid(dim);
         PrintWriter writer = null;
         if (debugPrinting) {
             try {
-                writer = new PrintWriter("max-"+max+"_size-"+size+"_D-"+D+".out", "UTF-8");
-                writer.println("iter;fitness");
+                writer = new PrintWriter("max-"+max+"_size-"+size+"_D-"+ DISTANCE +".out", "UTF-8");
+                writer.println("\"iter\";\"fitness\";\"distance\"");
             } catch (FileNotFoundException e) {
                 e.printStackTrace();
             } catch (UnsupportedEncodingException e) {
@@ -55,9 +62,14 @@ public class Main {
 
         int currFitness = grid.getFitness(subject, false);
         int candFitness = 0;
+        int stagnate = 0;
 
         for (int i = 0; i < max; i++) {
-            if (currFitness >= SIZE || i >= max) { // stop condition
+            if (currFitness >= SIZE || i >= max) { // stop condition: stop or solution was found
+                if (debugPrinting) {
+                    writer.println("\"" + i + "\";\"" + currFitness + "\";\"" + DISTANCE + "\"");
+                }
+                if (writer != null) writer.close();
                 return subject;
             }
 
@@ -66,9 +78,19 @@ public class Main {
             if (candFitness >= currFitness) {
                 subject = candidate;
                 currFitness = candFitness;
+                stagnate = 0;
+            }
+            else { // if stagnating = accept even worse candidate to eliminate local extrem
+                stagnate++;
+                if (stagnate >= LIMIT_STAGNATE) {
+                    subject = candidate;
+                    currFitness = candFitness;
+//                    DISTANCE++;
+//                    System.err.println("[WARN] STAGNATION: " + stagnate + ", distance: " + DISTANCE + ", fitness: " + currFitness);
+                }
             }
             if (debugPrinting) {
-                writer.println(i + ";" + currFitness);
+                writer.println("\"" + i + "\";\"" + currFitness + "\";\"" + DISTANCE + "\"");
             }
         }
 
@@ -78,7 +100,7 @@ public class Main {
 
     private static String getRandCandidate(String subject) {
         StringBuilder tmp = new StringBuilder(subject);
-        for (int i = 0; i <= D; i++) { // do some mutation
+        for (int i = 0; i <= DISTANCE; i++) { // do some mutation
             tmp.setCharAt(randInt(0,SIZE-1), alphabet[randInt(0,alphabet.length-1)]);
         }
 

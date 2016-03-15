@@ -19,7 +19,7 @@ public class Grid {
         }
 
         if (printGrid) {
-            System.out.println("[INFO] pos: [" + currPos[0] + "," + currPos[1] + "]");
+//            System.out.println("[INFO] pos: [" + currPos[0] + "," + currPos[1] + "]");
             printGridHumanFormat(grid);
         }
 
