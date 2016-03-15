@@ -1,2 +1,5 @@
 .idea/
 hillclimbing.iml
+out/
+max*
+.Rhistory

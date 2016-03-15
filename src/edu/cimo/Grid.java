@@ -2,22 +2,25 @@ package edu.cimo;
 
 public class Grid {
     private final char[] alphabet = {'H','D','L','P'};
-    private final int Y, X;
+    private final int X, Y;
 
     public Grid(int[] dim) {
         this.X = dim[0];
         this.Y = dim[1];
     }
 
-    protected int getFitness(String subject) {
+    protected int getFitness(String subject, boolean printGrid) {
         int fitness = 0;
         int[] currPos = {0,0};
-        int[][] grid = new int[this.Y][this.X];
+        int[][] grid = new int[this.X][this.Y];
 
         for (int i = 0; i < subject.length(); i++) { // iterate over subject
-            if (subject.charAt(i) == 'H') { // move up if possible
-                fitness += makeMove(currPos, grid, subject.charAt(i));
-            }
+            fitness += makeMove(currPos, grid, subject.charAt(i));
+        }
+
+        if (printGrid) {
+//            System.out.println("[INFO] pos: [" + currPos[0] + "," + currPos[1] + "]");
+            printGridHumanFormat(grid);
         }
 
         return fitness;
@@ -28,11 +31,14 @@ public class Grid {
      * return 1 - if possible and not visisted tile. 0 - if not possible or visited
      */
     private int makeMove(int[] currPos, int[][] grid, char move) {
+        if (currPos[0] >= X || currPos[1] >= Y) {
+            return 0;
+        }
         if (move == 'H') {
             if (currPos[1] < Y-1) { // can move up
                 currPos[1]++; // change position
-                if (grid[currPos[1]][currPos[1]] == 0) { // tile was not visited
-                    grid[currPos[1]][currPos[1]] = 1;
+                if (grid[currPos[0]][currPos[1]] == 0) { // tile was not visited
+                    grid[currPos[0]][currPos[1]] = 1;
                     return 1;
                 }
             }
@@ -40,8 +46,8 @@ public class Grid {
         else if (move == 'D') {
             if (currPos[1] > 0) { // can move up
                 currPos[1]--; // change position
-                if (grid[currPos[1]][currPos[1]] == 0) { // tile was not visited
-                    grid[currPos[1]][currPos[1]] = 1;
+                if (grid[currPos[0]][currPos[1]] == 0) { // tile was not visited
+                    grid[currPos[0]][currPos[1]] = 1;
                     return 1;
                 }
             }
@@ -66,5 +72,18 @@ public class Grid {
         }
 
         return 0;
+    }
+
+    /*
+     * brief: print grid in human readable format to console
+     */
+    protected void printGridHumanFormat(int[][] grid) {
+        System.out.println("[INFO] grid:");
+        for (int i = Y-1; i >= 0; i--) {
+            for (int j = 0; j < X; j++) {
+                System.out.print(grid[j][i] + " ");
+            }
+            System.out.println();
+        }
     }
 }
