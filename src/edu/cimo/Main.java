@@ -3,16 +3,18 @@ package edu.cimo;
 import java.io.FileNotFoundException;
 import java.io.PrintWriter;
 import java.io.UnsupportedEncodingException;
+import java.util.LinkedList;
 import java.util.Random;
 
 public class Main {
-    private static final int[] dim = {5,5}; // dimension of grid
+    private static final int[] dim = {4,5}; // dimension of grid
     private static final char[] alphabet = {'H','D','L','P'};
     private static final int SIZE = dim[0]*dim[1]; // size of grid (aka math searched space)
     private static final int LIMIT = 50000; // max iterations
-    private static final int INCREMENT = 1000;
+    private static final int INCREMENT = 100;
     private static int DISTANCE = 1; // searched distance
-    private static int LIMIT_STAGNATE = LIMIT/1;
+    private static int LIMIT_STAGNATE = LIMIT/10;
+    private static final boolean ENABLE_DISTANCE = true;
 
 
     /*
@@ -55,7 +57,7 @@ public class Main {
 
     private static String hillClimb(int max, int size, String subject, boolean debugPrinting) {
 //        System.out.println("[INFO] running hillclimbing");
-        String candidate;
+        LinkedList<String> candidates;
         Grid grid = new Grid(dim);
         PrintWriter writer = null;
         if (debugPrinting) {
@@ -82,19 +84,20 @@ public class Main {
                 return subject;
             }
 
-            candidate = getRandCandidate(subject);
-            candFitness = grid.getFitness(candidate, false);
-            if (candFitness >= currFitness) {
-                subject = candidate;
-                currFitness = candFitness;
-                if (currFitness == candFitness) stagnate++; // stagnation - same position
-                else stagnate = 0;
-            }
-            else { // stagnation - local extrem
-                stagnate++;
+            candidates = getRandCandidate(subject);
+            for (String candidate : candidates) {
+                candFitness = grid.getFitness(candidate, false);
+                if (candFitness >= currFitness) {
+                    subject = candidate;
+                    currFitness = candFitness;
+                    if (currFitness == candFitness) stagnate++; // stagnation - same position
+                    else stagnate = 0;
+                } else { // stagnation - local extrem
+                    stagnate++;
+                }
             }
 
-//            if (stagnate >= LIMIT_STAGNATE/2) DISTANCE = (DISTANCE < SIZE/4) ? DISTANCE+1 : DISTANCE;
+            if (stagnate >= LIMIT_STAGNATE/2 && ENABLE_DISTANCE) DISTANCE = (DISTANCE < SIZE/4) ? DISTANCE+1 : DISTANCE;
 
             if (debugPrinting) {
                 writer.println("\"" + i + "\";\"" + currFitness + "\";\"" + DISTANCE + "\"");
@@ -105,13 +108,16 @@ public class Main {
         return subject;
     }
 
-    private static String getRandCandidate(String subject) {
+    private static LinkedList<String> getRandCandidate(String subject) {
         StringBuilder tmp = new StringBuilder(subject);
-        for (int i = 0; i <= DISTANCE; i++) { // do some mutation
+        LinkedList<String> candidates = new LinkedList<String>();
+
+        for (int i = 0; i < DISTANCE; i++) { // do some mutation
             tmp.setCharAt(randInt(0,SIZE-1), alphabet[randInt(0,alphabet.length-1)]);
+            candidates.add(tmp.toString());
         }
 
-        return tmp.toString();
+        return candidates;
     }
     /*
      * generate random subject (aka chromosome) with limit length
