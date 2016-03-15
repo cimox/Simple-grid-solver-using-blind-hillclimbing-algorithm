@@ -79,11 +79,15 @@ public class Main {
             if (candFitness >= currFitness) {
                 subject = candidate;
                 currFitness = candFitness;
-                stagnate = 0;
+                if (currFitness == candFitness) stagnate++; // stagnation - same position
+                else stagnate = 0;
             }
             else { // stagnation - local extrem
                 stagnate++;
             }
+
+            if (stagnate >= LIMIT_STAGNATE/2) DISTANCE = (DISTANCE < SIZE/4) ? DISTANCE+1 : DISTANCE;
+
             if (debugPrinting) {
                 writer.println("\"" + i + "\";\"" + currFitness + "\";\"" + DISTANCE + "\"");
             }
