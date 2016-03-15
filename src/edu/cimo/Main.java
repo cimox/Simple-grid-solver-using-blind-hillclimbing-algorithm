@@ -26,7 +26,8 @@ public class Main {
      */
 
     public static void main(String[] args) {
-        int soFarBest = 0;
+        int soFarBestFitness = 0;
+        int soFarBestIncr = 0;
         Grid grid = new Grid(dim);
         String subject = genRanSubj();
         System.out.println("[INFO] 1st subject: " + subject);
@@ -43,9 +44,12 @@ public class Main {
                 System.out.println("--------------");
                 break;
             }
-            if (grid.getFitness(winner, false) > soFarBest) soFarBest = grid.getFitness(winner, false);
+            if (grid.getFitness(winner, false) > soFarBestFitness) {
+                soFarBestFitness = grid.getFitness(winner, false);
+                soFarBestIncr = i;
+            }
         }
-        System.err.println("[INFO] so far best: " + soFarBest);
+        System.err.println("[INFO] so far best: " + soFarBestFitness + ", incr: " + soFarBestIncr);
     }
 
 
