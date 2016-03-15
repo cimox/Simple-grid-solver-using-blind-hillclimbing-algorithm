@@ -1,20 +1,20 @@
 package edu.cimo;
 
 import java.io.*;
-import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.Random;
 
 public class Main {
-    private static final int[] dim = {5,10}; // dimension of grid
+    private static final int[] dim = {5,8}; // dimension of grid
     private static final char[] alphabet = {'H','D','L','P'};
-    private static final int SIZE = dim[0]*dim[1]; // size of grid (aka math searched space)
-    private static final int LIMIT = 50000; // max iterations
-    private static final int INCREMENT = 1000;
+    private static final int GRID_SIZE = dim[0]*dim[1]; // size of grid (aka math searched space)
+    private static final int LIMIT = 1000000; // max iterations
+    private static final int INCREMENT = 10000;
     private static int DISTANCE = 1; // searched distance
+    private static int MAX_DISTANCE = GRID_SIZE/5;
     private static int LIMIT_STAGNATE = LIMIT/100;
-    private static final boolean ENABLE_DISTANCE = false;
-    private static final boolean ENABLE_STAGNATE = false;
+    private static final boolean ENABLE_DISTANCE = true;
+    private static final boolean ENABLE_STAGNATE = true;
 
     /*
     Takze algoritmus vyzera nasledovne:
@@ -40,18 +40,18 @@ public class Main {
             DISTANCE=1;
             String winner = null;
             try {
-                winner = hillClimb(i, SIZE, subject, true);
+                winner = hillClimb(i, GRID_SIZE, subject, true);
             } catch (IOException e) {
                 e.printStackTrace();
             }
 
-            if (grid.getFitness(winner, false) == SIZE) {
+            if (grid.getFitness(winner, false) == GRID_SIZE) {
                 System.err.println("[FINAL + " + i + "] fitness: " + grid.getFitness(winner, true));
                 System.out.println(winner);
                 System.out.println("--------------");
                 break;
             }
-            if (grid.getFitness(winner, false) > soFarBestFitness) {
+            if (grid.getFitness(winner, false) >= soFarBestFitness) {
                 soFarBestFitness = grid.getFitness(winner, false);
                 soFarBestIncr = i;
             }
@@ -73,7 +73,7 @@ public class Main {
         int stagnate = 0;
 
         for (int i = 0; i < max; i++) {
-            if (currFitness >= SIZE || i >= max
+            if (currFitness >= GRID_SIZE || i >= max
                     || (ENABLE_STAGNATE && stagnate >= LIMIT_STAGNATE)) { // stop condition: stop or solution was found
 
                 if (debugPrinting) { // open file only if solution was found
@@ -104,13 +104,16 @@ public class Main {
                     subject = candidate;
                     currFitness = candFitness;
                     if (currFitness == candFitness) stagnate++; // stagnation - same position
-                    else stagnate = 0;
+                    else {
+                        stagnate = 0;
+                        DISTANCE = 1;
+                    }
                 } else { // stagnation - local extrem
                     stagnate++;
                 }
             }
 
-            if (stagnate >= LIMIT_STAGNATE/2 && ENABLE_DISTANCE) DISTANCE = (DISTANCE < SIZE/4) ? DISTANCE+1 : DISTANCE;
+            if (stagnate >= LIMIT_STAGNATE/2 && ENABLE_DISTANCE) DISTANCE = (DISTANCE < MAX_DISTANCE) ? DISTANCE+1 : DISTANCE;
 
             if (debugPrinting) {
                 output.add("\"" + i + "\";\"" + currFitness + "\";\"" + DISTANCE + "\"\n");
@@ -132,7 +135,7 @@ public class Main {
         LinkedList<String> candidates = new LinkedList<String>();
 
         for (int i = 0; i < DISTANCE; i++) { // do some mutation
-            tmp.setCharAt(randInt(0,SIZE-1), alphabet[randInt(0,alphabet.length-1)]);
+            tmp.setCharAt(randInt(0, GRID_SIZE -1), alphabet[randInt(0,alphabet.length-1)]);
             candidates.add(tmp.toString());
         }
 
@@ -144,7 +147,7 @@ public class Main {
     private static String genRanSubj() {
         StringBuilder str = new StringBuilder();
 
-        for (int i = 0; i < SIZE; i++) {
+        for (int i = 0; i < GRID_SIZE; i++) {
             str.append(alphabet[randInt(0,alphabet.length-1)]);
         }
 
