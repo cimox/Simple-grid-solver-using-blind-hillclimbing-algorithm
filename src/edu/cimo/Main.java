@@ -6,13 +6,14 @@ import java.io.UnsupportedEncodingException;
 import java.util.Random;
 
 public class Main {
-    private static final int[] dim = {4,5}; // dimension of grid
+    private static final int[] dim = {5,5}; // dimension of grid
     private static final char[] alphabet = {'H','D','L','P'};
     private static final int SIZE = dim[0]*dim[1]; // size of grid (aka math searched space)
     private static final int LIMIT = 50000; // max iterations
     private static final int INCREMENT = 1000;
     private static int DISTANCE = 1; // searched distance
-    private static int LIMIT_STAGNATE = LIMIT/50;
+    private static int LIMIT_STAGNATE = LIMIT/1;
+
 
     /*
     Takze algoritmus vyzera nasledovne:
@@ -25,6 +26,7 @@ public class Main {
      */
 
     public static void main(String[] args) {
+        int soFarBest = 0;
         Grid grid = new Grid(dim);
         String subject = genRanSubj();
         System.out.println("[INFO] 1st subject: " + subject);
@@ -41,7 +43,9 @@ public class Main {
                 System.out.println("--------------");
                 break;
             }
+            if (grid.getFitness(winner, false) > soFarBest) soFarBest = grid.getFitness(winner, false);
         }
+        System.err.println("[INFO] so far best: " + soFarBest);
     }
 
 
@@ -86,7 +90,7 @@ public class Main {
                 stagnate++;
             }
 
-            if (stagnate >= LIMIT_STAGNATE/2) DISTANCE = (DISTANCE < SIZE/4) ? DISTANCE+1 : DISTANCE;
+//            if (stagnate >= LIMIT_STAGNATE/2) DISTANCE = (DISTANCE < SIZE/4) ? DISTANCE+1 : DISTANCE;
 
             if (debugPrinting) {
                 writer.println("\"" + i + "\";\"" + currFitness + "\";\"" + DISTANCE + "\"");
