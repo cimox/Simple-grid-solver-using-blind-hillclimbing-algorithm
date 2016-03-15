@@ -1,21 +1,19 @@
 package edu.cimo;
 
-import java.io.FileNotFoundException;
-import java.io.PrintWriter;
-import java.io.UnsupportedEncodingException;
+import java.io.*;
 import java.util.LinkedList;
 import java.util.Random;
 
 public class Main {
-    private static final int[] dim = {4,5}; // dimension of grid
+    private static final int[] dim = {3,4}; // dimension of grid
     private static final char[] alphabet = {'H','D','L','P'};
     private static final int SIZE = dim[0]*dim[1]; // size of grid (aka math searched space)
     private static final int LIMIT = 50000; // max iterations
-    private static final int INCREMENT = 100;
+    private static final int INCREMENT = 1000;
     private static int DISTANCE = 1; // searched distance
-    private static int LIMIT_STAGNATE = LIMIT/10;
-    private static final boolean ENABLE_DISTANCE = true;
-
+    private static int LIMIT_STAGNATE = LIMIT/100;
+    private static final boolean ENABLE_DISTANCE = false;
+    private static final boolean ENABLE_STAGNATE = false;
 
     /*
     Takze algoritmus vyzera nasledovne:
@@ -39,7 +37,12 @@ public class Main {
         // do some magic
         for (int i = INCREMENT; i <= LIMIT; i+= INCREMENT) {
             DISTANCE=1;
-            String winner = hillClimb(i, SIZE, subject, true);
+            String winner = null;
+            try {
+                winner = hillClimb(i, SIZE, subject, true);
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
             if (grid.getFitness(winner, false) == SIZE) {
                 System.err.println("[FINAL + " + i + "] fitness: " + grid.getFitness(winner, true));
                 System.out.println(winner);
@@ -55,18 +58,26 @@ public class Main {
     }
 
 
-    private static String hillClimb(int max, int size, String subject, boolean debugPrinting) {
+    private static String hillClimb(int max, int size, String subject, boolean debugPrinting) throws IOException {
 //        System.out.println("[INFO] running hillclimbing");
         LinkedList<String> candidates;
         Grid grid = new Grid(dim);
-        PrintWriter writer = null;
+        File file = null;
+        BufferedWriter bw = null;
+
         if (debugPrinting) {
             try {
-                writer = new PrintWriter("max-"+max+"_size-"+size+"_D-"+ DISTANCE +".out", "UTF-8");
-                writer.println("\"iter\";\"fitness\";\"distance\"");
-            } catch (FileNotFoundException e) {
-                e.printStackTrace();
-            } catch (UnsupportedEncodingException e) {
+                file = new File("max-"+max+"_size-"+size+"_D-"+ DISTANCE +".out");
+
+                // if file doesnt exists, then create it
+                if (!file.exists()) {
+                    file.createNewFile();
+                }
+
+                FileWriter fw = new FileWriter(file.getAbsoluteFile());
+                bw = new BufferedWriter(fw);
+                bw.write("\"iter\";\"fitness\";\"distance\"");
+            } catch (IOException e) {
                 e.printStackTrace();
             }
         }
@@ -76,11 +87,12 @@ public class Main {
         int stagnate = 0;
 
         for (int i = 0; i < max; i++) {
-            if (currFitness >= SIZE || i >= max || stagnate >= LIMIT_STAGNATE) { // stop condition: stop or solution was found
+            if (currFitness >= SIZE || i >= max
+                    || (ENABLE_STAGNATE && stagnate >= LIMIT_STAGNATE)) { // stop condition: stop or solution was found
                 if (debugPrinting) {
-                    writer.println("\"" + i + "\";\"" + currFitness + "\";\"" + DISTANCE + "\"");
+                    bw.append("\"" + i + "\";\"" + currFitness + "\";\"" + DISTANCE + "\"\n");
                 }
-                if (writer != null) writer.close();
+                if (bw != null) bw.close();
                 return subject;
             }
 
@@ -100,11 +112,12 @@ public class Main {
             if (stagnate >= LIMIT_STAGNATE/2 && ENABLE_DISTANCE) DISTANCE = (DISTANCE < SIZE/4) ? DISTANCE+1 : DISTANCE;
 
             if (debugPrinting) {
-                writer.println("\"" + i + "\";\"" + currFitness + "\";\"" + DISTANCE + "\"");
+
+                bw.append("\"" + i + "\";\"" + currFitness + "\";\"" + DISTANCE + "\"\n");
             }
         }
 
-        if (writer != null) writer.close();
+        if (bw != null) bw.close();
         return subject;
     }
 
